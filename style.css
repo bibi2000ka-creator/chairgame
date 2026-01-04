@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  display: flex;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.game-container {
+  flex: 1; /* left half */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #222; /* optional background for canvas */
+}
+
+.instructions {
+  flex: 1; /* right half */
+  padding: 40px;
+  overflow-y: auto;
+  background-color: #fafafa;
+  color: #111;
+}
+
+.instructions h1 {
+  margin-top: 0;
+  font-size: 1.8em;
+  color: #222;
+}
+
+.instructions h2 {
+  font-weight: normal;
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  color: #555;
+}
+
+.instructions ul {
+  margin-top: 1em;
+}
