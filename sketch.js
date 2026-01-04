@@ -22,7 +22,6 @@ let activeNotes = [];
 let recording = [];
 let recordStartTime = 0;
 let playbackStartTime = 0;
-let playbackIndex = 0;
 
 // Fixed 7-note scale
 let notes = [220, 261.63, 293.66, 329.63, 392, 440, 493.88]; 
@@ -36,8 +35,13 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(400, 400);
+  // Attach canvas to the left-side container
+  let canvas = createCanvas(400, 400);
+  canvas.parent(document.querySelector('.game-container'));
+
   imageMode(CENTER);
+
+  userStartAudio(); // unlock audio for mobile
 
   // --- OSCILLATORS for each note ---
   for (let i = 0; i < notes.length; i++) {
@@ -66,7 +70,7 @@ function draw() {
 
   translate(width / 2, height / 2);
 
-  // Draw chairs + pulse
+  // Draw chairs + subtle pulse
   for (let chair of chairs) {
     if (autoPlay) chair.angle += rotationSpeed;
 
@@ -82,10 +86,11 @@ function draw() {
       chair.img.height * scaleFactor * sizeMultiplier
     );
 
-    chair.pulse *= 0.9; // fade pulse
+    // Fade pulse only when not rotating
+    if (!autoPlay) chair.pulse *= 0.9;
   }
 
-  // --- Playback mode with proper sustain ---
+  // --- Playback mode ---
   if (isPlayback && recording.length > 0) {
     let currentTime = millis() - playbackStartTime;
 
@@ -98,7 +103,7 @@ function draw() {
       }
     }
 
-    // stop playback automatically when done
+    // stop playback automatically
     let lastEndTime = recording[recording.length - 1].endTime;
     if (currentTime > lastEndTime + 200) { 
       isPlayback = false;
@@ -108,10 +113,7 @@ function draw() {
 }
 
 // --- Mouse click plays short note ---
-  function mousePressed() {
-  userStartAudio(); // this unlocks the Web Audio context
-  //
-
+function mousePressed() {
   if (!started) {
     started = true;
   } else if (!autoPlay && !isPlayback) {
@@ -148,7 +150,6 @@ function keyPressed() {
       oscs[index].amp(0.25, 0.05);
       chairs[index].pulse = 0.2;
 
-      // RECORD start time
       if (recordingMode) {
         recording.push({
           note: index,
@@ -168,10 +169,8 @@ function keyPressed() {
       recordingMode = true;
       autoPlay = false;
       isPlayback = false;
-      console.log("Recording started");
     } else if (recordingMode) {
       // end recording
-      // set endTime for any notes still active
       let endTime = millis() - recordStartTime;
       for (let r of recording) {
         if (r.endTime === null) r.endTime = endTime;
@@ -180,7 +179,6 @@ function keyPressed() {
       isPlayback = true;
       playbackStartTime = millis();
       autoPlay = true;
-      console.log("Playback started");
     }
   }
 }
@@ -195,7 +193,6 @@ function keyReleased() {
       activeNotes.splice(i, 1);
       oscs[index].amp(0, 0.3);
 
-      // set endTime in recording if recording
       if (recordingMode) {
         for (let j = recording.length - 1; j >= 0; j--) {
           if (recording[j].note === index && recording[j].endTime === null) {
