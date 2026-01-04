@@ -1,18 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/addons/p5.sound.min.js"></script>
-    
-    
-    
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8" />
+<head>
+  <meta charset="UTF-8">
+  <title>Musical Chairs Game</title>
 
-  </head>
-  <body>
-    <main>
-    </main>
-    <script src="sketch.js"></script>
-  </body>
+  <!-- p5.js -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/p5.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/addons/p5.sound.min.js"></script>
+
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Left side: game -->
+    <div class="game-container">
+      <!-- p5 canvas will be injected here -->
+    </div>
+
+    <!-- Right side: text -->
+    <div class="instructions">
+      <h1>You're searching for a place to sit!</h1>
+      <h2>This is Musical Chairs with passengers</h2>
+      <p>Instructions:</p>
+      <ul>
+        <li>Click on chairs to play notes</li>
+        <li>Or press keys 1–7 to play notes</li>
+        <li>Press Enter to start/stop recording</li>
+        <li>Double click anywhere to start/stop rotation</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Your p5 sketch -->
+  <script src="sketch.js"></script>
+</body>
 </html>
+
