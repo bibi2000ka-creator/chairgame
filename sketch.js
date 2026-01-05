@@ -30,11 +30,15 @@ function preload() {
 
 function setup() {
   const frame = document.querySelector('.game-canvas');
-  const canvas = createCanvas(frame.clientWidth, frame.clientHeight);
+  const rect = frame.getBoundingClientRect();
+  const w = Math.max(1, Math.round(rect.width));
+  // If the computed height is 0 (some Safari setups with CSS aspect-ratio),
+  // fall back to a square canvas using the width so the game remains visible.
+  const h = Math.max(1, Math.round(rect.height) || w);
+  const canvas = createCanvas(w, h);
   canvas.parent(frame);
 
   imageMode(CENTER);
-  userStartAudio();
 
   radius = min(width, height) * 0.33;
 
@@ -60,7 +64,10 @@ function setup() {
 
 function windowResized() {
   const frame = document.querySelector('.game-canvas');
-  resizeCanvas(frame.clientWidth, frame.clientHeight);
+  const rect = frame.getBoundingClientRect();
+  const w = Math.max(1, Math.round(rect.width));
+  const h = Math.max(1, Math.round(rect.height) || w);
+  resizeCanvas(w, h);
 }
 
 function draw() {
@@ -130,6 +137,8 @@ function mousePressed() {
 }
 
 function keyPressed() {
+  // allow keys to also unlock audio in browsers that require a user gesture
+  userStartAudio();
   if (!started) return;
 
   if (key >= '1' && key <= '7') {
