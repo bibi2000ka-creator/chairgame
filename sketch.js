@@ -35,10 +35,9 @@ function setup() {
   const frame = document.querySelector('.game-canvas');
   const rect = frame.getBoundingClientRect();
   const w = Math.max(1, Math.round(rect.width));
-  // If the computed height is 0 (some Safari setups with CSS aspect-ratio),
-  // fall back to a square canvas using the width so the game remains visible.
-  const h = Math.max(1, Math.round(rect.height) || w);
-  const canvas = createCanvas(w, h);
+  // force a square canvas sized to the container width (keeps layout consistent)
+  const size = w;
+  const canvas = createCanvas(size, size);
   canvas.parent(frame);
 
   imageMode(CENTER);
@@ -66,14 +65,23 @@ function setup() {
   if (enterBtnEl) {
     enterBtnEl.addEventListener('click', () => {
       userStartAudio();
-      // mirror ENTER key behavior: if not recording and not playing, start recording;
-      // if currently recording, start playback.
-      if (!recordingMode && !isPlayback) startRecording();
+      // If playing, stop playback. Otherwise mirror ENTER key behavior:
+      // if not recording and not playing, start recording; if currently recording, start playback.
+      if (isPlayback) {
+        stopPlayback();
+      } else if (!recordingMode && !isPlayback) startRecording();
       else if (recordingMode) startPlayback();
     });
   }
 
-  radius = min(width, height) * 0.33;
+  // Use a slightly larger radius on narrow screens so chairs sit nearer the canvas edges
+  // On narrow screens use a smaller radius and slightly smaller chairs
+  // so chairs cluster a bit closer to the center and don't touch the border.
+  let radiusRatio = width < 520 ? 0.28 : 0.33;
+  radius = min(width, height) * radiusRatio * 1.1; // 10% larger radius
+
+  // Reduce chair scale on small screens so they fit comfortably
+  scaleFactor = width < 520 ? 0.18 : 0.22;
 
   // Oscillators (soft, non-piercing)
   for (let i = 0; i < notes.length; i++) {
@@ -99,8 +107,11 @@ function windowResized() {
   const frame = document.querySelector('.game-canvas');
   const rect = frame.getBoundingClientRect();
   const w = Math.max(1, Math.round(rect.width));
-  const h = Math.max(1, Math.round(rect.height) || w);
-  resizeCanvas(w, h);
+  const size = w;
+  resizeCanvas(size, size);
+  // recompute radius after resize (keep it 10% larger)
+  let radiusRatio = width < 520 ? 0.28 : 0.33;
+  radius = min(width, height) * radiusRatio * 1.1;
 }
 
 // Touch handler for mobile: unlock audio and behave like mousePressed
@@ -243,6 +254,7 @@ function startRecording() {
   autoRotate = false;
   if (recordBtnEl) recordBtnEl.textContent = 'Stop & Play';
   if (playBtnEl) playBtnEl.disabled = true;
+  if (enterBtnEl) enterBtnEl.textContent = 'STOP & PLAY';
 }
 
 function startPlayback() {
@@ -254,6 +266,7 @@ function startPlayback() {
   for (let c of chairs) c.pulse = 0;
   if (playBtnEl) playBtnEl.textContent = 'Stop';
   if (recordBtnEl) recordBtnEl.disabled = true;
+  if (enterBtnEl) enterBtnEl.textContent = 'Stop';
 }
 
 function stopPlayback() {
@@ -264,5 +277,9 @@ function stopPlayback() {
   if (recordBtnEl) {
     recordBtnEl.textContent = 'Record';
     recordBtnEl.disabled = false;
+  }
+  if (enterBtnEl) {
+    enterBtnEl.textContent = 'ENTER';
+    enterBtnEl.disabled = false;
   }
 }
