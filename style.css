@@ -101,6 +101,9 @@ body {
   object-fit: cover;
 }
 
+/* Allow vertical panning (scrolling) when touching the canvas on mobile */
+.game-canvas canvas { touch-action: pan-y; }
+
 /* Controls under the canvas */
 .controls {
   margin-top: 12px;
