@@ -20,6 +20,9 @@ let isPlayback = false;
 let recording = [];
 let recordStartTime = 0;
 let playbackStartTime = 0;
+let recordBtnEl = null;
+let playBtnEl = null;
+let enterBtnEl = null;
 
 function preload() {
   bg = loadImage('images/background.png');
@@ -39,6 +42,36 @@ function setup() {
   canvas.parent(frame);
 
   imageMode(CENTER);
+  // wire up on-screen controls (useful for touch devices)
+  recordBtnEl = document.getElementById('record-btn');
+  playBtnEl = document.getElementById('play-btn');
+  enterBtnEl = document.getElementById('enter-btn');
+
+  if (recordBtnEl) {
+    recordBtnEl.addEventListener('click', () => {
+      userStartAudio();
+      if (!recordingMode && !isPlayback) startRecording();
+      else if (recordingMode) startPlayback();
+    });
+  }
+
+  if (playBtnEl) {
+    playBtnEl.addEventListener('click', () => {
+      userStartAudio();
+      if (!isPlayback && recording.length > 0) startPlayback();
+      else if (isPlayback) stopPlayback();
+    });
+  }
+
+  if (enterBtnEl) {
+    enterBtnEl.addEventListener('click', () => {
+      userStartAudio();
+      // mirror ENTER key behavior: if not recording and not playing, start recording;
+      // if currently recording, start playback.
+      if (!recordingMode && !isPlayback) startRecording();
+      else if (recordingMode) startPlayback();
+    });
+  }
 
   radius = min(width, height) * 0.33;
 
@@ -68,6 +101,34 @@ function windowResized() {
   const w = Math.max(1, Math.round(rect.width));
   const h = Math.max(1, Math.round(rect.height) || w);
   resizeCanvas(w, h);
+}
+
+// Touch handler for mobile: unlock audio and behave like mousePressed
+function touchStarted() {
+  userStartAudio();
+  started = true;
+
+  if (autoRotate || isPlayback) return false;
+
+  // use the first touch point
+  let tx = touches && touches[0] ? touches[0].x : mouseX;
+  let ty = touches && touches[0] ? touches[0].y : mouseY;
+
+  let mx = tx - width / 2;
+  let my = ty - height / 2;
+
+  for (let c of chairs) {
+    let x = cos(c.angle) * radius;
+    let y = sin(c.angle) * radius;
+    if (dist(mx, my, x, y) < 60) {
+      triggerNote(c.note, 180);
+      if (recordingMode) recordNote(c.note, 180);
+      break;
+    }
+  }
+
+  // returning false prevents emulated mouse events on some browsers
+  return false;
 }
 
 function draw() {
@@ -180,6 +241,8 @@ function startRecording() {
   recordStartTime = millis();
   recordingMode = true;
   autoRotate = false;
+  if (recordBtnEl) recordBtnEl.textContent = 'Stop & Play';
+  if (playBtnEl) playBtnEl.disabled = true;
 }
 
 function startPlayback() {
@@ -189,10 +252,17 @@ function startPlayback() {
   playbackStartTime = millis();
   // ensure there are no lingering visual pulses while rotation is running
   for (let c of chairs) c.pulse = 0;
+  if (playBtnEl) playBtnEl.textContent = 'Stop';
+  if (recordBtnEl) recordBtnEl.disabled = true;
 }
 
 function stopPlayback() {
   isPlayback = false;
   autoRotate = false;
   for (let o of oscs) o.amp(0, 0.2);
+  if (playBtnEl) playBtnEl.textContent = 'Play';
+  if (recordBtnEl) {
+    recordBtnEl.textContent = 'Record';
+    recordBtnEl.disabled = false;
+  }
 }
