@@ -101,7 +101,8 @@ function draw() {
     for (let r of recording) {
       if (t >= r.start && t < r.end) {
         oscs[r.note].amp(0.18, 0.05);
-        chairs[r.note].pulse = 0.15;
+        // don't visually pulse chairs while auto-rotation is active
+        if (!autoRotate) chairs[r.note].pulse = 0.15;
       } else {
         oscs[r.note].amp(0, 0.1);
       }
@@ -186,6 +187,8 @@ function startPlayback() {
   isPlayback = true;
   autoRotate = true;
   playbackStartTime = millis();
+  // ensure there are no lingering visual pulses while rotation is running
+  for (let c of chairs) c.pulse = 0;
 }
 
 function stopPlayback() {
