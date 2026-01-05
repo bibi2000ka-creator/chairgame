@@ -1,75 +1,131 @@
-html, body {
+* {
+  box-sizing: border-box;
+}
+
+body {
   margin: 0;
-  padding: 0;
-  background: #efefef;
-  font-family: monospace;
-  height: 100%;
+  background: #e6e6e6;
+  font-family: Georgia, serif;
 }
 
-.page {
+.container {
   display: flex;
-  height: 100vh;
-  padding: 40px;
-  box-sizing: border-box;
-  gap: 40px;
+  height: calc(100vh - 40px);
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #000000; /* dark frame behind both panes */
+  box-shadow: 0 0 0 6px rgba(0,0,0,0.05) inset;
 }
 
-/* LEFT TEXT */
-.text-column {
-  width: 35%;
-  background: black;
-  color: white;
-  padding: 30px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+.text-area {
+  width: 36%;
+  padding: 42px 44px;
+  background: #000000;
+  color: #ffffff;
+  overflow-y: auto;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.6;
 }
 
-.text-column h1 {
-  font-size: 14px;
+.text-area h1 {
+  margin-top: 0;
+  color: #bfbfbf;
   font-weight: normal;
-  margin-bottom: 30px;
+  letter-spacing: 1px;
 }
 
-.text-column p {
-  font-size: 12px;
-  line-height: 1.5;
-  margin-bottom: 20px;
+.text-area p {
+  color: #dcdcdc;
+  font-size: 15px;
 }
 
-.how-to {
-  border: 1px solid white;
+.text-area h1 {
+  font-size: 22px;
+}
+
+.text-area h3 {
+  font-size: 14px;
+  color: #d0d0d0;
+}
+
+.text-area h3 {
+  margin-bottom: 12px;
+}
+
+/* box around the "How to play" paragraph (first p after h3) */
+.text-area h3 + p {
+  border: 1px solid rgba(255,255,255,0.18);
   padding: 12px;
-  font-size: 11px;
-  margin-top: auto;
+  display: inline-block;
+  max-width: 85%;
+  background: rgba(0,0,0,0.15);
 }
 
-.back {
-  margin-top: 20px;
-  font-size: 11px;
-  color: white;
+.text-area a {
+  color: #ffffff;
   text-decoration: none;
-}
-
-/* RIGHT GAME */
-.game-column {
-  width: 65%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  margin-top: 18px;
 }
 
 .game-frame {
-  width: 90%;
-  height: 90%;
-  background: #111;
-  border: 1px solid rgba(255,255,255,0.4);
-  position: relative;
+  width: 64%;
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
 }
 
-/* canvas inside frame */
-.game-frame canvas {
-  width: 100% !important;
-  height: 100% !important;
+/* Inner canvas wrapper: constrains the p5 canvas size so it doesn't fill the whole right pane */
+.game-canvas {
+  width: min(720px, 78%);
+  aspect-ratio: 1 / 1; /* keep the canvas square */
+  max-height: 80vh;
+  background: #0b0b0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 10px solid #3b6b6b; /* slightly lighter teal framed border */
+  box-shadow: 0 0 0 8px rgba(60,70,70,0.06) inset;
+}
+
+/* ensure the p5 canvas itself doesn't overflow the wrapper */
+.game-canvas canvas {
+  max-width: 100%;
+  max-height: 100%;
   display: block;
+}
+
+/* Responsive: stack on small screens and allow canvas to scale */
+@media (max-width: 920px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+    max-width: 920px;
+    margin: 14px auto;
+  }
+
+  .text-area {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .game-frame {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .game-canvas {
+    width: calc(100% - 28px);
+    max-height: 60vh;
+    aspect-ratio: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-area p { font-size: 13px; }
+  .text-area h1 { font-size: 18px; }
+  .game-canvas { border-width: 6px; }
 }
