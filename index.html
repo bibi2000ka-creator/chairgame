@@ -1,26 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Musical Chairs</title>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/p5.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/addons/p5.sound.min.js"></script>
-  <link rel="stylesheet" href="style.css">
-</head>
 <body>
-  <div class="container">
-    <div class="left">
-      <!-- Game canvas will go here -->
+  <div class="page">
+
+    <div class="text-column">
+      <h1>chair game</h1>
+
+      <p>
+        You've just entered the train.<br>
+        It's packed in here.<br>
+        Speed is needed to get you the thing you want the most —<br>
+        a place near the window.
+      </p>
+
+      <p>
+        You scan anxiously left to right<br>
+        and suddenly you see it.<br>
+        There it is, a couple of steps ahead of you — an empty seat.<br>
+        But of course, you're not the only one trying to sit.
+      </p>
+
+      <div class="how-to">
+        <p><strong>How to play:</strong></p>
+        <p>
+          Click the chairs or press keys 1–7 to play notes.<br>
+          Press ENTER to record/playback your sequence.<br>
+          Double-click the canvas to stop rotation.<br><br>
+          This is musical chairs for passengers.<br>
+          Compose your own subway tune.
+        </p>
+      </div>
+
+      <a class="back" href="index.html">Back to Subway</a>
     </div>
-    <div class="right">
-      <h2>You're searching for a place to sit…</h2>
-      <p>This is Musical Chairs with passengers!</p>
-      <p>Click chairs or press keys 1–7 to play notes.</p>
-      <p>Press ENTER to record/playback your sequence.</p>
-      <p>Double-click the canvas to stop rotation.</p>
+
+    <div class="game-column">
+      <div class="game-frame">
+        <!-- p5 canvas goes here -->
+      </div>
     </div>
+
   </div>
 
   <script src="sketch.js"></script>
 </body>
-</html>
