@@ -1,29 +1,74 @@
-body, html {
+html, body {
   margin: 0;
   padding: 0;
+  background: #efefef;
+  font-family: monospace;
   height: 100%;
-  font-family: sans-serif;
 }
 
-.container {
+.page {
   display: flex;
-  height: 100vh; /* full viewport height */
+  height: 100vh;
+  padding: 40px;
+  box-sizing: border-box;
+  gap: 40px;
 }
 
-.left {
-  flex: 0 0 70%; /* 70% width for game */
+/* LEFT TEXT */
+.text-column {
+  width: 35%;
+  background: black;
+  color: white;
+  padding: 30px;
+  box-sizing: border-box;
   display: flex;
+  flex-direction: column;
 }
 
-.right {
-  flex: 0 0 30%; /* 30% width for text */
-  padding: 20px;
-  background: #f8f8f8;
-  overflow-y: auto;
+.text-column h1 {
+  font-size: 14px;
+  font-weight: normal;
+  margin-bottom: 30px;
 }
 
-/* make canvas fill left container fully */
-.left canvas {
+.text-column p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.how-to {
+  border: 1px solid white;
+  padding: 12px;
+  font-size: 11px;
+  margin-top: auto;
+}
+
+.back {
+  margin-top: 20px;
+  font-size: 11px;
+  color: white;
+  text-decoration: none;
+}
+
+/* RIGHT GAME */
+.game-column {
+  width: 65%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-frame {
+  width: 90%;
+  height: 90%;
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.4);
+  position: relative;
+}
+
+/* canvas inside frame */
+.game-frame canvas {
   width: 100% !important;
   height: 100% !important;
   display: block;
