@@ -7,26 +7,24 @@ body, html {
 
 .container {
   display: flex;
-  height: 100vh;
+  height: 100vh; /* full viewport height */
 }
 
 .left {
   flex: 0 0 70%; /* 70% width for game */
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f0f0f0;
 }
 
 .right {
   flex: 0 0 30%; /* 30% width for text */
-  padding: 30px;
+  padding: 20px;
+  background: #f8f8f8;
   overflow-y: auto;
-  background: #fff;
 }
 
-.game-container canvas {
-  width: 95%;   /* make canvas almost full height of left container */
-  height: auto;
-  max-height: 95%;
+/* make canvas fill left container fully */
+.left canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
