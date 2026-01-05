@@ -29,7 +29,7 @@ function preload() {
 }
 
 function setup() {
-  const frame = document.querySelector('.game-frame');
+  const frame = document.querySelector('.game-canvas');
   const canvas = createCanvas(frame.clientWidth, frame.clientHeight);
   canvas.parent(frame);
 
@@ -59,9 +59,8 @@ function setup() {
 }
 
 function windowResized() {
-  const frame = document.querySelector('.game-frame');
+  const frame = document.querySelector('.game-canvas');
   resizeCanvas(frame.clientWidth, frame.clientHeight);
-  radius = min(width, height) * 0.33;
 }
 
 function draw() {
