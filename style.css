@@ -188,3 +188,15 @@ body {
   font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
 }
+
+/* Show mobile UI on touch devices regardless of CSS width */
+@media (pointer: coarse) {
+  .container { flex-direction: column; }
+  .text-area { width: 100%; }
+  .game-frame { width: 100%; padding: 12px; }
+  .enter-btn { display: block; }
+  .howto-mobile { display: block; }
+  .controls { display: none; }
+  .text-area h3 + p { display: none; }
+  .game-canvas { width: 92%; aspect-ratio: 1 / 1; }
+}
