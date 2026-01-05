@@ -118,7 +118,6 @@ function windowResized() {
 function touchStarted() {
   userStartAudio();
   started = true;
-
   if (autoRotate || isPlayback) return false;
 
   // use the first touch point
@@ -128,18 +127,23 @@ function touchStarted() {
   let mx = tx - width / 2;
   let my = ty - height / 2;
 
+  // only prevent default (return false) when a chair was actually tapped
+  let interacted = false;
   for (let c of chairs) {
     let x = cos(c.angle) * radius;
     let y = sin(c.angle) * radius;
     if (dist(mx, my, x, y) < 60) {
       triggerNote(c.note, 180);
       if (recordingMode) recordNote(c.note, 180);
+      interacted = true;
       break;
     }
   }
 
-  // returning false prevents emulated mouse events on some browsers
-  return false;
+  // if we interacted with the canvas content, block the emulated mouse event
+  // otherwise allow the touch to scroll the page
+  if (interacted) return false;
+  return true;
 }
 
 function draw() {
