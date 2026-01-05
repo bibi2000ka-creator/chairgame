@@ -1,46 +1,32 @@
-body {
+body, html {
   margin: 0;
+  padding: 0;
+  height: 100%;
   font-family: sans-serif;
-  display: flex;
-  height: 100vh;
-  background-color: #f0f0f0;
 }
 
 .container {
   display: flex;
-  width: 100%;
-  height: 100%;
+  height: 100vh;
 }
 
-.game-container {
-  flex: 1; /* left half */
+.left {
+  flex: 0 0 70%; /* 70% width for game */
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #222; /* optional background for canvas */
+  background: #f0f0f0;
 }
 
-.instructions {
-  flex: 1; /* right half */
-  padding: 40px;
+.right {
+  flex: 0 0 30%; /* 30% width for text */
+  padding: 30px;
   overflow-y: auto;
-  background-color: #fafafa;
-  color: #111;
+  background: #fff;
 }
 
-.instructions h1 {
-  margin-top: 0;
-  font-size: 1.8em;
-  color: #222;
-}
-
-.instructions h2 {
-  font-weight: normal;
-  margin-top: 0.5em;
-  margin-bottom: 1em;
-  color: #555;
-}
-
-.instructions ul {
-  margin-top: 1em;
+.game-container canvas {
+  width: 95%;   /* make canvas almost full height of left container */
+  height: auto;
+  max-height: 95%;
 }
