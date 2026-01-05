@@ -201,7 +201,9 @@ body {
 
 /* Show mobile UI on touch devices regardless of CSS width */
 @media (pointer: coarse) {
-  .container { flex-direction: column; }
+  /* allow the page to grow and scroll on touch devices */
+  html, body { height: auto; }
+  .container { flex-direction: column; height: auto; max-width: 100%; margin: 0; padding: 12px 0; }
   .text-area { width: 100%; }
   .game-frame { width: 100%; padding: 12px; }
   .enter-btn { display: block; }
