@@ -159,12 +159,39 @@ function checkChairHit(tx, ty) {
 function touchStarted() {
   unlockAudio();
   started = true;
-  if (!autoRotate && !isPlayback) {
-    checkChairHit(mouseX, mouseY);
+
+  // 1. Check if the touch is actually inside the canvas
+  if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+    
+    // 2. Try to hit a chair
+    let hitSomething = checkChairHit(mouseX, mouseY);
+    
+    // 3. If we hit a chair or are in "play mode", block the scroll
+    if (hitSomething || isPlayback || autoRotate) {
+      return false; 
+    }
   }
-  // This prevents the browser from scrolling/refreshing while playing
-  return false; 
+  
+  // 4. If we didn't hit a chair, let the browser scroll normally
+  return true; 
 }
+
+// Update this function to return true/false if a chair was hit
+function checkChairHit(tx, ty) {
+  let mx = tx - width / 2;
+  let my = ty - height / 2;
+  for (let c of chairs) {
+    let x = cos(c.angle) * radius;
+    let y = sin(c.angle) * radius;
+    if (dist(mx, my, x, y) < 70 * (width / 600 + 0.5)) {
+      triggerNote(c.note, 180);
+      if (recordingMode) recordNote(c.note, 180);
+      return true; // We hit a chair!
+    }
+  }
+  return false; // No chair hit
+}
+
 
 // Mouse handling for Desktop
 function mousePressed() {
