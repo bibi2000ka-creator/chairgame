@@ -1,7 +1,24 @@
+// --- 1. FIREBASE CONFIGURATION ---
+// Replace the values below with your actual Firebase project settings
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBbLxF6VSJA1CVIGemr7vfh9Q71c0ivF00",
+  authDomain: "chairgame-7ef8b.firebaseapp.com",
+  databaseURL: "https://chairgame-7ef8b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "chairgame-7ef8b",
+  storageBucket: "chairgame-7ef8b.firebasestorage.app",
+  messagingSenderId: "740764358758",
+  appId: "1:740764358758:web:ad6ba45ccedf270a9d75a7",
+  measurementId: "G-3KFSVXT1KM"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 let bg;
 let chairImages = [];
 let chairs = [];
-
 let radius;
 let rotationSpeed = 0.01;
 let scaleFactor = 0.22;
@@ -23,6 +40,8 @@ let playbackStartTime = 0;
 let recordBtnEl = null;
 let playBtnEl = null;
 let enterBtnEl = null;
+let saveBtnEl = null;
+let nameInputEl = null;
 
 function preload() {
   bg = loadImage('images/background.png');
@@ -35,55 +54,39 @@ function setup() {
   const frame = document.querySelector('.game-canvas');
   const rect = frame.getBoundingClientRect();
   const w = Math.max(1, Math.round(rect.width));
-  // force a square canvas sized to the container width (keeps layout consistent)
   const size = w;
   const canvas = createCanvas(size, size);
   canvas.parent(frame);
 
   imageMode(CENTER);
-  // wire up on-screen controls (useful for touch devices)
+
+  // Wire up HTML elements
   recordBtnEl = document.getElementById('record-btn');
   playBtnEl = document.getElementById('play-btn');
   enterBtnEl = document.getElementById('enter-btn');
+  saveBtnEl = document.getElementById('save-btn');
+  nameInputEl = document.getElementById('player-name');
 
-  if (recordBtnEl) {
-    recordBtnEl.addEventListener('click', () => {
-      userStartAudio();
-      if (!recordingMode && !isPlayback) startRecording();
-      else if (recordingMode) startPlayback();
-    });
-  }
-
-  if (playBtnEl) {
-    playBtnEl.addEventListener('click', () => {
-      userStartAudio();
-      if (!isPlayback && recording.length > 0) startPlayback();
-      else if (isPlayback) stopPlayback();
-    });
-  }
-
+  // Listeners for Buttons
   if (enterBtnEl) {
     enterBtnEl.addEventListener('click', () => {
       userStartAudio();
-      // If playing, stop playback. Otherwise mirror ENTER key behavior:
-      // if not recording and not playing, start recording; if currently recording, start playback.
-      if (isPlayback) {
-        stopPlayback();
-      } else if (!recordingMode && !isPlayback) startRecording();
+      if (isPlayback) stopPlayback();
+      else if (!recordingMode && !isPlayback) startRecording();
       else if (recordingMode) startPlayback();
     });
   }
 
-  // Use a slightly larger radius on narrow screens so chairs sit nearer the canvas edges
-  // On narrow screens use a smaller radius and slightly smaller chairs
-  // so chairs cluster a bit closer to the center and don't touch the border.
-  let radiusRatio = width < 520 ? 0.28 : 0.33;
-  radius = min(width, height) * radiusRatio * 1.1; // 10% larger radius
+  if (saveBtnEl) {
+    saveBtnEl.addEventListener('click', saveTuneToFirebase);
+  }
 
-  // Reduce chair scale on small screens so they fit comfortably
+  // Layout math
+  let radiusRatio = width < 520 ? 0.25 : 0.33;
+  radius = min(width, height) * radiusRatio * 1.1;
   scaleFactor = width < 520 ? 0.18 : 0.22;
 
-  // Oscillators (soft, non-piercing)
+  // Sound & Chairs Init
   for (let i = 0; i < notes.length; i++) {
     let osc = new p5.Oscillator('triangle');
     osc.freq(notes[i]);
@@ -92,7 +95,6 @@ function setup() {
     oscs.push(osc);
   }
 
-  // Chairs
   for (let i = 0; i < 7; i++) {
     chairs.push({
       img: chairImages[i],
@@ -101,107 +103,107 @@ function setup() {
       pulse: 0
     });
   }
+
+  // Start listening for tunes from the cloud
+  fetchTunes();
 }
 
-function windowResized() {
-  const frame = document.querySelector('.game-canvas');
-  const rect = frame.getBoundingClientRect();
-  const w = Math.max(1, Math.round(rect.width));
-  const size = w;
-  resizeCanvas(size, size);
-  // recompute radius after resize (keep it 10% larger)
-  let radiusRatio = width < 520 ? 0.28 : 0.33;
-  radius = min(width, height) * radiusRatio * 1.1;
-}
+// --- 2. FIREBASE FUNCTIONS ---
 
-// Touch handler for mobile: unlock audio and behave like mousePressed
-function touchStarted() {
-  userStartAudio();
-  started = true;
-  if (autoRotate || isPlayback) return false;
-
-  // use the first touch point
-  let tx = touches && touches[0] ? touches[0].x : mouseX;
-  let ty = touches && touches[0] ? touches[0].y : mouseY;
-
-  let mx = tx - width / 2;
-  let my = ty - height / 2;
-
-  // only prevent default (return false) when a chair was actually tapped
-  let interacted = false;
-  for (let c of chairs) {
-    let x = cos(c.angle) * radius;
-    let y = sin(c.angle) * radius;
-    if (dist(mx, my, x, y) < 60) {
-      triggerNote(c.note, 180);
-      if (recordingMode) recordNote(c.note, 180);
-      interacted = true;
-      break;
-    }
+function saveTuneToFirebase() {
+  const playerName = nameInputEl.value.trim() || "Anonymous Passenger";
+  
+  if (recording.length === 0) {
+    alert("Record a tune first!");
+    return;
   }
 
-  // if we interacted with the canvas content, block the emulated mouse event
-  // otherwise allow the touch to scroll the page
-  if (interacted) return false;
-  return true;
+  const newTuneRef = database.ref('tunes').push();
+  newTuneRef.set({
+    player: playerName,
+    notes: recording,
+    createdAt: Date.now()
+  }).then(() => {
+    alert("Tune saved to the train records!");
+    saveBtnEl.disabled = true;
+    nameInputEl.value = "";
+  }).catch((error) => {
+    console.error("Save failed: ", error);
+  });
 }
+
+function fetchTunes() {
+  const desktopList = document.getElementById('tunes-list-desktop');
+  const mobileList = document.getElementById('tunes-list-mobile');
+  
+  // Listen for the 10 most recent tunes
+  database.ref('tunes').limitToLast(10).on('value', (snapshot) => {
+    const data = snapshot.val();
+    let listContent = '';
+    
+    if (!data) {
+      listContent = '<li style="list-style:none">No tunes recorded yet.</li>';
+    } else {
+      // Convert object to array and reverse to show newest first
+      const entries = Object.entries(data).reverse();
+      entries.forEach(([key, val]) => {
+        // We use a global function name for the onclick
+        listContent += `<li onclick='playRemoteTune(${JSON.stringify(val.notes)})'>
+          <span>${val.player}</span> <span class="play-icon">▶ Play</span>
+        </li>`;
+      });
+    }
+    
+    if(desktopList) desktopList.innerHTML = listContent;
+    if(mobileList) mobileList.innerHTML = listContent;
+  });
+}
+
+// Global function to trigger playback from the list
+window.playRemoteTune = function(notesData) {
+  userStartAudio();
+  stopPlayback(); // stop any current music
+  recording = notesData;
+  startPlayback();
+};
+
+// --- 3. EXISTING GAME LOGIC (Restored from your snippet) ---
 
 function draw() {
   background(20);
   image(bg, width / 2, height / 2, width, height);
-
   translate(width / 2, height / 2);
 
   for (let c of chairs) {
     if (autoRotate) c.angle += rotationSpeed;
-
     let x = cos(c.angle) * radius;
     let y = sin(c.angle) * radius;
-
     let s = 1 + c.pulse;
-    image(
-      c.img,
-      x,
-      y,
-      c.img.width * scaleFactor * s,
-      c.img.height * scaleFactor * s
-    );
-
-    c.pulse *= 0.88; // subtle decay
+    image(c.img, x, y, c.img.width * scaleFactor * s, c.img.height * scaleFactor * s);
+    c.pulse *= 0.88;
   }
 
-  // Playback
   if (isPlayback) {
     let t = millis() - playbackStartTime;
-
     for (let r of recording) {
       if (t >= r.start && t < r.end) {
         oscs[r.note].amp(0.18, 0.05);
-        // don't visually pulse chairs while auto-rotation is active
         if (!autoRotate) chairs[r.note].pulse = 0.15;
       } else {
         oscs[r.note].amp(0, 0.1);
       }
     }
-
     let last = recording[recording.length - 1];
-    if (t > last.end + 300) {
-      stopPlayback();
-    }
+    if (t > last.end + 300) stopPlayback();
   }
 }
-
-/* ---------------- INPUT ---------------- */
 
 function mousePressed() {
   userStartAudio();
   started = true;
-
   if (autoRotate || isPlayback) return;
-
   let mx = mouseX - width / 2;
   let my = mouseY - height / 2;
-
   for (let c of chairs) {
     let x = cos(c.angle) * radius;
     let y = sin(c.angle) * radius;
@@ -214,27 +216,18 @@ function mousePressed() {
 }
 
 function keyPressed() {
-  // allow keys to also unlock audio in browsers that require a user gesture
   userStartAudio();
-  if (!started) return;
-
+  if (!started) started = true;
   if (key >= '1' && key <= '7') {
     let i = int(key) - 1;
     triggerNote(i, 250);
     if (recordingMode) recordNote(i, 250);
   }
-
   if (keyCode === ENTER) {
     if (!recordingMode && !isPlayback) startRecording();
     else if (recordingMode) startPlayback();
   }
 }
-
-function doubleClicked() {
-  autoRotate = false;
-}
-
-/* ---------------- SOUND HELPERS ---------------- */
 
 function triggerNote(i, duration) {
   oscs[i].amp(0.18, 0.03);
@@ -244,11 +237,7 @@ function triggerNote(i, duration) {
 
 function recordNote(i, duration) {
   let now = millis() - recordStartTime;
-  recording.push({
-    note: i,
-    start: now,
-    end: now + duration
-  });
+  recording.push({ note: i, start: now, end: now + duration });
 }
 
 function startRecording() {
@@ -256,9 +245,8 @@ function startRecording() {
   recordStartTime = millis();
   recordingMode = true;
   autoRotate = false;
-  if (recordBtnEl) recordBtnEl.textContent = 'Stop & Play';
-  if (playBtnEl) playBtnEl.disabled = true;
   if (enterBtnEl) enterBtnEl.textContent = 'STOP & PLAY';
+  if (saveBtnEl) saveBtnEl.disabled = true;
 }
 
 function startPlayback() {
@@ -266,24 +254,20 @@ function startPlayback() {
   isPlayback = true;
   autoRotate = true;
   playbackStartTime = millis();
-  // ensure there are no lingering visual pulses while rotation is running
   for (let c of chairs) c.pulse = 0;
-  if (playBtnEl) playBtnEl.textContent = 'Stop';
-  if (recordBtnEl) recordBtnEl.disabled = true;
   if (enterBtnEl) enterBtnEl.textContent = 'Stop';
+  if (saveBtnEl) saveBtnEl.disabled = false;
 }
 
 function stopPlayback() {
   isPlayback = false;
   autoRotate = false;
   for (let o of oscs) o.amp(0, 0.2);
-  if (playBtnEl) playBtnEl.textContent = 'Play';
-  if (recordBtnEl) {
-    recordBtnEl.textContent = 'Record';
-    recordBtnEl.disabled = false;
-  }
-  if (enterBtnEl) {
-    enterBtnEl.textContent = 'ENTER';
-    enterBtnEl.disabled = false;
-  }
+  if (enterBtnEl) enterBtnEl.textContent = 'ENTER';
+}
+
+function windowResized() {
+  const frame = document.querySelector('.game-canvas');
+  const rect = frame.getBoundingClientRect();
+  resizeCanvas(rect.width, rect.width);
 }
