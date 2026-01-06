@@ -1,246 +1,98 @@
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: #e6e6e6;
-  font-family: Georgia, serif;
-}
+* { box-sizing: border-box; }
+body { margin: 0; background: #e6e6e6; font-family: Georgia, serif; }
 
 .container {
   display: flex;
   height: calc(100vh - 40px);
   max-width: 1200px;
   margin: 20px auto;
-  background: #000000; /* dark frame behind both panes */
+  background: #000;
   box-shadow: 0 0 0 6px rgba(0,0,0,0.05) inset;
 }
 
-.text-area {
-  width: 36%;
-  padding: 42px 44px;
-  background: #000000;
-  color: #ffffff;
-  overflow-y: auto;
-  font-family: 'Courier New', Courier, monospace;
-  line-height: 1.6;
+/* --- LEFT PANEL --- */
+.text-area { width: 36%; padding: 42px 44px; color: #fff; overflow-y: auto; font-family: 'Courier New', Courier, monospace; line-height: 1.6; }
+.text-area h1 { font-size: 22px; color: #bfbfbf; font-weight: normal; margin-top: 0; }
+
+.instruction-box { 
+  border: 1px solid rgba(255,255,255,0.18); 
+  padding: 15px; 
+  background: rgba(255,255,255,0.05); 
+  font-family: 'Courier New', Courier, monospace; 
+  color: #dcdcdc; 
+  font-size: 14px; 
 }
 
-.text-area h1 {
-  margin-top: 0;
-  color: #bfbfbf;
-  font-weight: normal;
-  letter-spacing: 1px;
+.desktop-back-link { color: #fff; text-decoration: none; display: inline-block; margin-top: 18px; font-family: 'Courier New', Courier, monospace; }
+
+/* --- RIGHT PANEL --- */
+.game-frame { 
+  width: 64%; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 20px; 
+  background: #000;
 }
 
-.text-area p {
-  color: #dcdcdc;
-  font-size: 15px;
-}
-
-.text-area h1 {
-  font-size: 22px;
-}
-
-.text-area h3 {
-  font-size: 14px;
-  color: #d0d0d0;
-}
-
-.text-area h3 {
-  margin-bottom: 12px;
-}
-
-/* box around the "How to play" paragraph (first p after h3) */
-.text-area h3 + p {
-  border: 1px solid rgba(255,255,255,0.18);
-  padding: 12px;
-  display: inline-block;
-  max-width: 85%;
-  background: rgba(0,0,0,0.15);
-}
-
-.text-area a {
-  color: #ffffff;
-  text-decoration: none;
-  display: inline-block;
-  margin-top: 18px;
-}
-
-.game-frame {
-  width: 64%;
-  background: transparent;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px;
-}
-
-/* Inner canvas wrapper: constrains the p5 canvas size so it doesn't fill the whole right pane */
-.game-canvas {
-  width: min(640px, 78%);
-  aspect-ratio: 1 / 1; /* keep the canvas square */
-  max-height: 78vh;
+/* --- DESKTOP CANVAS SIZE (Fixed Smallness) --- */
+.game-canvas { 
+  line-height: 0; 
+  border: 10px solid #3b6b6b; 
   background: #0b0b0b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 10px solid #3b6b6b; /* slightly lighter teal framed border */
-  box-shadow: 0 0 0 8px rgba(60,70,70,0.06) inset;
-  margin: 0 auto;
-  overflow: hidden;
+  display: inline-block;
+  margin-bottom: 20px;
+  /* Make it large on desktop */
+  width: 600px; 
+  height: 600px;
 }
 
-/* ensure the p5 canvas itself doesn't overflow the wrapper */
 .game-canvas canvas {
+  display: block; 
   width: 100% !important;
   height: 100% !important;
-  display: block;
-  object-fit: cover;
 }
 
-/* Allow vertical panning (scrolling) when touching the canvas on mobile */
-.game-canvas canvas { touch-action: pan-y; }
+.mobile-top-instructions, .mobile-rec { display: none; }
 
-/* Controls under the canvas */
-.controls {
-  margin-top: 12px;
-  display: none; /* hidden by default on desktop */
-  gap: 10px;
-  justify-content: center;
-  width: 100%;
-}
+/* --- CONTROLS --- */
+.save-controls { display: flex; gap: 15px; margin-top: 10px; }
+#player-name { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); color: #bfbfbf; padding: 12px; width: 180px; text-align: center; font-family: 'Courier New', Courier, monospace; }
+#save-btn { background: rgba(59, 107, 107, 0.25); border: 1px solid rgba(59, 107, 107, 0.8); color: #dcdcdc; padding: 12px 24px; cursor: pointer; font-family: 'Courier New', Courier, monospace; }
+#save-btn[disabled] { opacity: 0.3; }
 
-/* mobile back link: hidden by default (desktop), shown on touch devices via media query */
-.back-mobile { display: none; }
+/* --- RECORDINGS --- */
+.recordings-section h3 { font-family: 'Courier New', Courier, monospace; font-size: 15px; color: #bfbfbf; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; font-weight: normal; }
+#tunes-list-desktop, #tunes-list-mobile { padding: 0; list-style: none; font-family: 'Courier New', Courier, monospace; color: #dcdcdc; font-size: 14px; }
+#tunes-list-desktop li, #tunes-list-mobile li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; cursor: pointer; }
 
-.btn {
-  background: transparent;
-  color: #dcdcdc;
-  border: 1px solid rgba(220,220,220,0.16);
-  padding: 8px 14px;
-  border-radius: 4px;
-  font-family: 'Courier New', Courier, monospace;
-  cursor: pointer;
-}
+/* --- MOBILE --- */
+.enter-btn, .back-mobile { display: none; }
 
-.btn:active { transform: translateY(1px); }
-.btn[disabled] { opacity: 0.45; cursor: default; }
-
-@media (hover: hover) and (pointer: fine) {
-  .btn:hover { border-color: rgba(220,220,220,0.28); }
-}
-
-/* Responsive: stack on small screens and allow canvas to scale */
-@media (max-width: 920px) {
-  .container {
-    flex-direction: column;
-    height: auto;
-    max-width: 920px;
-    margin: 14px auto;
+@media (max-width: 920px), (pointer: coarse) {
+  .container { flex-direction: column; height: auto; margin: 0; }
+  .text-area { width: 100%; padding: 20px; }
+  .desktop-sidebar-instructions, .desktop-rec, .desktop-back-link { display: none; }
+  
+  .game-frame { width: 100%; padding: 20px; }
+  .mobile-top-instructions { display: block; order: 1; width: 92%; margin-bottom: 20px; }
+  
+  /* Reset size for mobile screens */
+  .game-canvas { 
+    order: 2; 
+    width: 92vw; 
+    height: 92vw; 
+    max-width: 500px; 
+    max-height: 500px;
   }
-
-  .text-area {
-    width: 100%;
-    padding: 20px;
-  }
-
-  .game-frame {
-    width: 100%;
-    padding: 14px;
-  }
-
-  .game-canvas {
-    width: 92%;
-    max-height: 60vh;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto 8px;
-  }
-  /* show a large ENTER button and a compact how-to on mobile; keep developer controls hidden */
-  .game-frame { flex-direction: column; align-items: center; }
-  .controls { display: none; }
-  .enter-btn { display: block; margin: 8px auto 12px; }
-  .howto-mobile { display: block; }
-
-  /* hide the original how-to inside the left text area so the small mobile how-to appears below the canvas */
-  .text-area h3 + p { display: none; }
+  
+  .enter-btn { display: block; order: 3; margin: 15px 0; padding: 12px; background: #222; color: #fff; width: 180px; border: 1px solid #444; font-family: 'Courier New', Courier, monospace; }
+  .save-controls { display: flex; flex-direction: column; order: 4; width: 92%; gap: 10px; }
+  #player-name, #save-btn { width: 100%; }
+  
+  .mobile-rec { display: block; order: 5; width: 92%; margin-top: 25px; }
+  .back-mobile { display: block; order: 6; color: #fff; margin: 30px 0; text-decoration: none; text-align: center; border-top: 1px solid #333; padding-top: 15px; width: 92%; font-family: 'Courier New', Courier, monospace; }
 }
 
-@media (max-width: 480px) {
-  .text-area p { font-size: 13px; }
-  .text-area h1 { font-size: 18px; }
-  .game-canvas { border-width: 6px; }
-}
-
-/* mobile ENTER button (hidden on desktop) */
-.enter-btn {
-  display: none;
-  margin: 18px auto 6px;
-  background: transparent;
-  color: #ffffff;
-  border: none;
-  font-family: 'Courier New', Courier, monospace;
-  letter-spacing: 1px;
-  font-size: 18px;
-  padding: 10px 18px;
-  width: 160px;
-  text-align: center;
-}
-
-.howto-mobile {
-  display: none;
-  width: 92%;
-  max-width: 720px;
-  margin: 6px auto 18px;
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 10px;
-  background: rgba(0,0,0,0.12);
-  color: #dcdcdc;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
-}
-
-/* Show mobile UI on touch devices regardless of CSS width */
-@media (pointer: coarse) {
-  /* allow the page to grow and scroll on touch devices */
-  html, body { height: auto; }
-  .container { flex-direction: column; height: auto; max-width: 100%; margin: 0; padding: 12px 0; }
-  .text-area { width: 100%; }
-  .game-frame { width: 100%; padding: 12px; }
-  .enter-btn { display: block; }
-  .howto-mobile { display: block; }
-  .controls { display: none; }
-  .text-area h3 + p { display: none; }
-  .game-canvas { width: 92%; aspect-ratio: 1 / 1; }
-}
-
-/* Mobile-specific tweaks for ENTER and back link */
-@media (pointer: coarse) {
-  .enter-btn {
-    display: block;
-    border: 2px solid rgba(255,255,255,0.16);
-    padding: 12px 18px;
-    border-radius: 4px;
-    font-size: 16px;
-    width: 180px;
-    background: rgba(0,0,0,0.25);
-    color: #fff;
-  }
-
-  .back-mobile {
-    display: block;
-    color: #ffffff;
-    text-decoration: none;
-    margin: 12px auto 24px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 12px;
-    width: 92%;
-    text-align: center;
-    font-family: 'Courier New', Courier, monospace;
-  }
-
-  /* hide the left-pane back link on touch devices */
-  .text-area a { display: none; }
-}
+.controls { display: none; }
