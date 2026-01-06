@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+ <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
     <title>chair game</title>
     <link rel="stylesheet" href="style.css" />
+    
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/addons/p5.sound.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  </head>
+
+    <style>
+      /* 3. ADDED: This CSS fix ensures Safari handles the canvas clicks correctly */
+      .game-canvas canvas {
+        display: block;
+        touch-action: none; /* Prevents the page from scrolling while you tap the chairs */
+        -webkit-user-select: none; /* Prevents text selection on long-press */
+        -webkit-tap-highlight-color: transparent; /* Removes the grey flash on tap */
+      }
+    </style>
+</head>
+
   <body>
     <div class="container">
 
