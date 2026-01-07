@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>chair game</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/addons/p5.sound.min.js"></script>
@@ -13,9 +12,22 @@
   </head>
   <body>
     <div class="container">
+
       <div class="text-area">
         <h1>chair game</h1>
-        <p>You've just entered the train. It's packed in here. Speed is needed to get you the thing you want the most — a place near the window.</p>
+        <p>
+          You've just entered the train.<br>
+          It's packed in here.<br>
+          Speed is needed to get you the thing you want the most —<br>
+          a place near the window.
+        </p>
+        <p>
+          You scan anxiously left to right<br>
+          and suddenly you see it.<br>
+          There it is, a couple of steps ahead of you — an empty seat.<br>
+          But of course, you're not the only one trying to sit.
+        </p>
+
         <div class="desktop-sidebar-instructions">
           <div class="instruction-box">
             <strong>How to play</strong><br><br>
@@ -24,42 +36,47 @@
             Double-click the canvas to stop rotation.
           </div>
         </div>
+
         <div class="recordings-section desktop-rec">
           <h3>Passenger Recordings</h3>
-          <ul id="tunes-list-desktop">
-            <li style="color:#666; list-style:none;">Loading tunes...</li>
-          </ul>
+          <ul id="tunes-list-desktop"></ul>
         </div>
+
         <a href="https://metro1234.neocities.org/subway" class="desktop-back-link">Back to Subway</a>
       </div>
 
       <div class="game-frame">
+        
         <div class="mobile-top-instructions">
           <div class="instruction-box">
             <strong>How to play</strong><br><br>
-            Click chairs or 1–7 to play.<br>
-            ENTER to record/play.<br>
+            Click the chairs or press keys 1–7 to play notes.<br>
+            Press ENTER to record/playback your sequence.<br>
+            Double-click the canvas to stop rotation.
           </div>
         </div>
+
         <div class="game-canvas"></div>
+        
         <button id="enter-btn" class="enter-btn">ENTER</button>
+
         <div class="save-controls">
-          <input type="text" id="player-name" placeholder="Enter name" maxlength="15">
+          <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" autocomplete="off">
           <button id="save-btn" disabled>Save Tune</button>
         </div>
+
         <div class="recordings-section mobile-rec">
-          <ul id="tunes-list-mobile"></ul>
+          <h3>Passenger Recordings</h3>
+          <ul id="tunes-list-mobile">
+            <li style="color:#666; list-style:none;">Loading tunes...</li>
+          </ul>
         </div>
+        
         <a class="back-mobile" href="https://metro1234.neocities.org/subway">Back to Subway</a>
       </div>
+
     </div>
     <script src="sketch.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js');
-        });
-      }
-    </script>
+    
   </body>
 </html>
