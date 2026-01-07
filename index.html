@@ -1,29 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
- <head>
+  <head>
     <meta charset="utf-8" />
-   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>chair game</title>
     <link rel="stylesheet" href="style.css" />
-    
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/addons/p5.sound.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <style>
-      /* 3. ADDED: This CSS fix ensures Safari handles the canvas clicks correctly */
-      .game-canvas canvas {
-        display: block;
-        touch-action: none; /* Prevents the page from scrolling while you tap the chairs */
-        -webkit-user-select: none; /* Prevents text selection on long-press */
-        -webkit-tap-highlight-color: transparent; /* Removes the grey flash on tap */
-      }
-    </style>
-</head>
-
+  </head>
   <body>
     <div class="container">
 
@@ -41,7 +27,6 @@
           There it is, a couple of steps ahead of you — an empty seat.<br>
           But of course, you're not the only one trying to sit.
         </p>
-      <p> This is musical chairs with passengers. </p>
 
         <div class="desktop-sidebar-instructions">
           <div class="instruction-box">
@@ -92,5 +77,14 @@
 
     </div>
     <script src="sketch.js"></script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Offline mode ready.'))
+        .catch(err => console.log('Offline setup failed.', err));
+    });
+  }
+</script>
   </body>
 </html>
