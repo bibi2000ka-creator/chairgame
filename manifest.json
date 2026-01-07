@@ -1,0 +1,21 @@
+{
+  "name": "Chair Game",
+  "short_name": "ChairGame",
+  "start_url": "./chairgame.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./images/chair1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./images/chair1.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
