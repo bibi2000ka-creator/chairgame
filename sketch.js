@@ -36,7 +36,10 @@ function setup() {
   const frame = document.querySelector('.game-canvas');
   if (!frame) return;
   
-  const size = Math.max(1, Math.round(frame.getBoundingClientRect().width));
+  // compute a size that fits the frame and avoids exceeding viewport height on phones
+  const frameWidth = Math.max(1, Math.round(frame.clientWidth));
+  const maxAllowed = Math.max(1, Math.round(window.innerHeight * 0.8));
+  const size = Math.max(1, Math.round(Math.min(frameWidth, maxAllowed)));
   createCanvas(size, size).parent(frame);
   imageMode(CENTER);
 
@@ -80,6 +83,12 @@ function setup() {
   }
   
   fetchTunes();
+
+  // Ensure canvas is recalculated on orientation change for mobile devices
+  window.addEventListener('orientationchange', () => {
+    // small timeout to allow viewport to settle
+    setTimeout(windowResized, 350);
+  });
 }
 
 // --- 5. DRAW LOOP ---
@@ -260,7 +269,9 @@ window.playRemote = (notesStr) => {
 function windowResized() {
   const frame = document.querySelector('.game-canvas');
   if (frame) {
-    const size = Math.max(1, Math.round(frame.getBoundingClientRect().width));
+    const frameWidth = Math.max(1, Math.round(frame.clientWidth));
+    const maxAllowed = Math.max(1, Math.round(window.innerHeight * 0.8));
+    const size = Math.max(1, Math.round(Math.min(frameWidth, maxAllowed)));
     resizeCanvas(size, size);
     radius = min(width, height) * (width < 520 ? 0.28 : 0.35);
   }
