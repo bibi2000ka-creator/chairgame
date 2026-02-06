@@ -52,6 +52,8 @@ body { margin: 0; background: #e6e6e6; font-family: Georgia, serif; min-height: 
   display: block; 
   width: 100% !important;
   height: 100% !important;
+  /* Allow vertical scrolling (pan-y) when touching the canvas on mobile */
+  touch-action: pan-y;
 }
 
 .mobile-top-instructions, .mobile-rec { display: none; }
