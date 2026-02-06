@@ -36,6 +36,20 @@ body { margin: 0; background: #e6e6e6; font-family: Georgia, serif; min-height: 
   background: #000;
 }
 
+/* recording indicator */
+#rec-indicator {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #b71c1c;
+  color: #fff;
+  padding: 6px 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  border-radius: 4px;
+  z-index: 50;
+}
+
 /* --- DESKTOP CANVAS SIZE (Fixed Smallness) --- */
 .game-canvas { 
   line-height: 0; 
