@@ -1,17 +1,9 @@
 * { box-sizing: border-box; }
-
-/* 1. Ensure the base page allows scrolling */
-html, body { 
-  margin: 0; 
-  background: #e6e6e6; 
-  font-family: Georgia, serif; 
-  overflow-x: hidden; /* Prevent side-scrolling */
-  -webkit-overflow-scrolling: touch; 
-}
+body { margin: 0; background: #e6e6e6; font-family: Georgia, serif; min-height: 100vh; }
 
 .container {
   display: flex;
-  height: calc(100vh - 40px);
+  min-height: 100vh;
   max-width: 1200px;
   margin: 20px auto;
   background: #000;
@@ -19,15 +11,7 @@ html, body {
 }
 
 /* --- LEFT PANEL --- */
-.text-area { 
-  width: 36%; 
-  padding: 42px 44px; 
-  color: #fff; 
-  overflow-y: auto; 
-  font-family: 'Courier New', Courier, monospace; 
-  line-height: 1.6; 
-}
-
+.text-area { width: 36%; padding: 42px 44px; color: #fff; overflow-y: auto; font-family: 'Courier New', Courier, monospace; line-height: 1.6; }
 .text-area h1 { font-size: 22px; color: #bfbfbf; font-weight: normal; margin-top: 0; }
 
 .instruction-box { 
@@ -52,24 +36,22 @@ html, body {
   background: #000;
 }
 
-/* --- CANVAS SETTINGS --- */
+/* --- DESKTOP CANVAS SIZE (Fixed Smallness) --- */
 .game-canvas { 
   line-height: 0; 
   border: 10px solid #3b6b6b; 
   background: #0b0b0b;
   display: inline-block;
   margin-bottom: 20px;
+  /* Desktop fixed size */
   width: 600px; 
   height: 600px;
 }
 
-/* 2. Critical for Safari Mobile interaction */
 .game-canvas canvas {
   display: block; 
   width: 100% !important;
   height: 100% !important;
-  touch-action: manipulation; /* Allows scrolling but makes tapping responsive */
-  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-top-instructions, .mobile-rec { display: none; }
@@ -85,51 +67,33 @@ html, body {
 #tunes-list-desktop, #tunes-list-mobile { padding: 0; list-style: none; font-family: 'Courier New', Courier, monospace; color: #dcdcdc; font-size: 14px; }
 #tunes-list-desktop li, #tunes-list-mobile li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; cursor: pointer; }
 
-/* --- MOBILE OVERRIDES --- */
+/* --- MOBILE --- */
 .enter-btn, .back-mobile { display: none; }
 
 @media (max-width: 920px), (pointer: coarse) {
-  /* 3. Allow the container to expand so the user can scroll down to the game */
-  .container { 
-    flex-direction: column; 
-    height: auto; 
-    min-height: 100vh;
-    margin: 0; 
-  }
-
-  .text-area { 
-    width: 100%; 
-    padding: 20px; 
-    height: auto; /* Let text area expand instead of scroll internally */
-    overflow-y: visible; 
-  }
-
+  .container { flex-direction: column; height: auto; margin: 0; }
+  .text-area { width: 100%; padding: 20px; }
   .desktop-sidebar-instructions, .desktop-rec, .desktop-back-link { display: none; }
   
-  .game-frame { 
-    width: 100%; 
-    padding: 20px; 
-    height: auto;
-  }
-
+  .game-frame { width: 100%; padding: 20px; }
   .mobile-top-instructions { display: block; order: 1; width: 92%; margin-bottom: 20px; }
   
+  /* Reset size for mobile screens */
   .game-canvas { 
-    order: 2; 
-    width: 92vw; 
-    height: 92vw; 
-    max-width: 500px; 
-    max-height: 500px;
-    margin-left: auto;
-    margin-right: auto;
+    order: 2;
+    /* cap to viewport width but keep square aspect */
+    width: min(92vw, 500px);
+    aspect-ratio: 1 / 1;
+    height: auto;
+    max-width: 92vw;
   }
   
-  .enter-btn { display: block; order: 3; margin: 15px auto; padding: 12px; background: #222; color: #fff; width: 100%; max-width: 250px; border: 1px solid #444; font-family: 'Courier New', Courier, monospace; }
-  .save-controls { display: flex; flex-direction: column; order: 4; width: 92%; gap: 10px; margin: 0 auto; }
+  .enter-btn { display: block; order: 3; margin: 15px 0; padding: 12px; background: #222; color: #fff; width: 180px; border: 1px solid #444; font-family: 'Courier New', Courier, monospace; }
+  .save-controls { display: flex; flex-direction: column; order: 4; width: 92%; gap: 10px; }
   #player-name, #save-btn { width: 100%; }
   
-  .mobile-rec { display: block; order: 5; width: 92%; margin: 25px auto; }
-  .back-mobile { display: block; order: 6; color: #fff; margin: 30px auto; text-decoration: none; text-align: center; border-top: 1px solid #333; padding-top: 15px; width: 92%; font-family: 'Courier New', Courier, monospace; }
+  .mobile-rec { display: block; order: 5; width: 92%; margin-top: 25px; }
+  .back-mobile { display: block; order: 6; color: #fff; margin: 30px 0; text-decoration: none; text-align: center; border-top: 1px solid #333; padding-top: 15px; width: 92%; font-family: 'Courier New', Courier, monospace; }
 }
 
 .controls { display: none; }
