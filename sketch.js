@@ -43,6 +43,44 @@ function setup() {
   createCanvas(size, size).parent(frame);
   imageMode(CENTER);
 
+  // Make touch interactions non-blocking for scrolling: only treat short taps as clicks.
+  // Attach passive touch handlers to the actual canvas element created by p5.
+  const canvasEl = frame.querySelector('canvas');
+  if (canvasEl) {
+    let startY = 0, startX = 0, moved = false;
+    canvasEl.addEventListener('touchstart', (e) => {
+      const t = e.touches && e.touches[0];
+      if (t) { startY = t.clientY; startX = t.clientX; moved = false; }
+    }, { passive: true });
+
+    canvasEl.addEventListener('touchmove', (e) => {
+      const t = e.touches && e.touches[0];
+      if (t && (Math.abs(t.clientY - startY) > 10 || Math.abs(t.clientX - startX) > 10)) {
+        moved = true;
+      }
+    }, { passive: true });
+
+    canvasEl.addEventListener('touchend', (e) => {
+      // If there wasn't a meaningful move, treat as a tap/click
+      if (!moved) {
+        // Use p5's mouse coordinates mapped from the touch
+        const t = e.changedTouches && e.changedTouches[0];
+        if (t) {
+          const rect = canvasEl.getBoundingClientRect();
+          // map to p5 canvas coordinates
+          const px = t.clientX - rect.left;
+          const py = t.clientY - rect.top;
+          // p5 global variables mouseX/mouseY will not be set here; set temporary
+          // We'll call a helper that uses px,py to simulate the click
+          handleCanvasTap(px, py);
+        } else {
+          // fallback
+          handleCanvasTap(width / 2, height / 2);
+        }
+      }
+    }, { passive: true });
+  }
+
   // HTML Elements
   enterBtnEl = document.getElementById('enter-btn');
   saveBtnEl = document.getElementById('save-btn');
@@ -147,9 +185,32 @@ function mousePressed() {
 }
 
 // Mobile support
-function touchStarted() {
-  mousePressed();
-  // Do not return false here so the browser can handle touch scrolling.
+// Helper to map a tap on the canvas to the game's mouse coordinates and trigger click logic.
+function handleCanvasTap(px, py) {
+  // map px,py (canvas DOM coords) to p5 internal coordinates where (0,0) is top-left of canvas
+  // p5's mouseX/mouseY are relative to the canvas; we can compute relative to center used by game
+  const canvasEl = document.querySelector('.game-canvas canvas');
+  if (!canvasEl) return;
+  const rect = canvasEl.getBoundingClientRect();
+  const localX = px; // already relative to rect.left
+  const localY = py; // relative to rect.top
+  // Convert to p5 coordinates used in mousePressed (where origin is canvas top-left)
+  // p5's mouseX/mouseY are global, but our mousePressed computes mx,my relative to center using mouseX,mouseY
+  // So we can temporarily set mouseX/mouseY globals if they exist, otherwise compute values and call internal logic.
+  // We'll compute center-relative coords and call the same logic as in mousePressed.
+  const mx = localX - (rect.width / 2);
+  const my = localY - (rect.height / 2);
+
+  if (autoRotate || isPlayback) return;
+  for (let c of chairs) {
+    let x = cos(c.angle) * radius;
+    let y = sin(c.angle) * radius;
+    if (dist(mx, my, x, y) < 60) {
+      triggerNote(c.note, 180);
+      if (recordingMode) recordNote(c.note, 180);
+      break;
+    }
+  }
 }
 
 function keyPressed() {
