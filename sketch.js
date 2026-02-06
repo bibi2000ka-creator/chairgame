@@ -149,7 +149,7 @@ function mousePressed() {
 // Mobile support
 function touchStarted() {
   mousePressed();
-  return false; 
+  // Do not return false here so the browser can handle touch scrolling.
 }
 
 function keyPressed() {
