@@ -86,8 +86,19 @@ function setup() {
   saveBtnEl = document.getElementById('save-btn');
   nameInputEl = document.getElementById('player-name');
 
+  // small visual recording indicator for debugging on devices
+  const frameEl = document.querySelector('.game-frame');
+  if (frameEl && !document.getElementById('rec-indicator')) {
+    const ind = document.createElement('div');
+    ind.id = 'rec-indicator';
+    ind.textContent = 'REC';
+    ind.style.display = 'none';
+    frameEl.appendChild(ind);
+  }
+
   // Event Listeners
-  enterBtnEl?.addEventListener('click', () => {
+  // Centralized handler so keyboard and touch/button behave identically
+  function handleEnterAction() {
     userStartAudio();
     if (isPlayback) {
       stopPlayback();
@@ -96,6 +107,13 @@ function setup() {
     } else {
       startPlayback();
     }
+  }
+
+  enterBtnEl?.addEventListener('click', handleEnterAction);
+  // support pointer/touch on some devices
+  enterBtnEl?.addEventListener('pointerdown', (e) => {
+    // ensure this is treated as an intentional gesture
+    handleEnterAction();
   });
 
   saveBtnEl?.addEventListener('click', saveTuneToFirebase);
@@ -169,6 +187,7 @@ function draw() {
 function mousePressed() {
   userStartAudio();
   if (autoRotate || isPlayback) return;
+  console.log('mousePressed; recordingMode=', recordingMode);
   
   let mx = mouseX - width / 2;
   let my = mouseY - height / 2;
@@ -221,9 +240,7 @@ function keyPressed() {
     if (recordingMode) recordNote(i, 250);
   }
   if (keyCode === ENTER) {
-    if (isPlayback) stopPlayback();
-    else if (!recordingMode) startRecording();
-    else startPlayback();
+    handleEnterAction();
   }
 }
 
@@ -239,6 +256,7 @@ function triggerNote(i, d) {
 }
 
 function recordNote(i, d) {
+  console.log('recordNote', i, 'recordingMode=', recordingMode);
   recording.push({ 
     note: i, 
     start: millis() - recordStartTime, 
@@ -250,9 +268,13 @@ function startRecording() {
   recording = []; 
   recordStartTime = millis(); 
   recordingMode = true; 
-  autoRotate = true; // Οι καρέκλες γυρνούν όσο ηχογραφείς
+  // During recording we want the user to be able to tap/play notes,
+  // so do NOT enable auto-rotation here. Rotation will start on playback.
+  autoRotate = false;
   if (enterBtnEl) enterBtnEl.textContent = 'STOP & PLAY';
   if (saveBtnEl) saveBtnEl.disabled = true;
+  console.log('startRecording at', recordStartTime);
+  const ind = document.getElementById('rec-indicator'); if (ind) ind.style.display = 'block';
 }
 
 function startPlayback() {
@@ -266,6 +288,7 @@ function startPlayback() {
   playbackStartTime = millis();
   if (enterBtnEl) enterBtnEl.textContent = 'STOP ALL';
   if (saveBtnEl) saveBtnEl.disabled = false;
+  const ind = document.getElementById('rec-indicator'); if (ind) ind.style.display = 'none';
 }
 
 function stopPlayback() {
@@ -274,6 +297,7 @@ function stopPlayback() {
   autoRotate = false;
   for (let o of oscs) o.amp(0, 0.2);
   if (enterBtnEl) enterBtnEl.textContent = 'ENTER';
+  const ind = document.getElementById('rec-indicator'); if (ind) ind.style.display = 'none';
 }
 
 // --- 8. FIREBASE FUNCTIONS ---
