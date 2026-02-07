@@ -22,6 +22,7 @@ let started = false, autoRotate = false, recordingMode = false, isPlayback = fal
 let recording = [], recordStartTime = 0, playbackStartTime = 0;
 let radius, rotationSpeed = 0.01, scaleFactor = 0.22;
 let enterBtnEl, saveBtnEl, nameInputEl;
+let lastActionTime = 0; // For mobile debouncing
 
 // --- 3. PRELOAD ---
 function preload() {
@@ -36,69 +37,33 @@ function setup() {
   const frame = document.querySelector('.game-canvas');
   if (!frame) return;
   
-  // compute a size that fits the frame and avoids exceeding viewport height on phones
   const frameWidth = Math.max(1, Math.round(frame.clientWidth));
   const maxAllowed = Math.max(1, Math.round(window.innerHeight * 0.8));
   const size = Math.max(1, Math.round(Math.min(frameWidth, maxAllowed)));
   createCanvas(size, size).parent(frame);
   imageMode(CENTER);
 
-  // Touch handling for mobile
-  const canvasEl = frame.querySelector('canvas');
-  if (canvasEl) {
-    let startY = 0, startX = 0, moved = false;
-    canvasEl.addEventListener('touchstart', (e) => {
-      const t = e.touches && e.touches[0];
-      if (t) { startY = t.clientY; startX = t.clientX; moved = false; }
-    }, { passive: true });
-
-    canvasEl.addEventListener('touchmove', (e) => {
-      const t = e.touches && e.touches[0];
-      if (t && (Math.abs(t.clientY - startY) > 10 || Math.abs(t.clientX - startX) > 10)) {
-        moved = true;
-      }
-    }, { passive: true });
-
-    canvasEl.addEventListener('touchend', (e) => {
-      if (!moved) {
-        const t = e.changedTouches && e.changedTouches[0];
-        if (t) {
-          const rect = canvasEl.getBoundingClientRect();
-          const px = t.clientX - rect.left;
-          const py = t.clientY - rect.top;
-          handleCanvasTap(px, py);
-        } else {
-          handleCanvasTap(width / 2, height / 2);
-        }
-      }
-    }, { passive: true });
-  }
-
   // HTML Elements
   enterBtnEl = document.getElementById('enter-btn');
   saveBtnEl = document.getElementById('save-btn');
   nameInputEl = document.getElementById('player-name');
 
-  // Rec indicator
-  const frameEl = document.querySelector('.game-frame');
-  if (frameEl && !document.getElementById('rec-indicator')) {
-    const ind = document.createElement('div');
-    ind.id = 'rec-indicator';
-    ind.textContent = 'REC';
-    ind.style.display = 'none';
-    frameEl.appendChild(ind);
-  }
+  // Unified Pointer Listeners (Best for Mobile + Desktop)
+  enterBtnEl?.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); // Critical: stops ghost clicks on mobile
+    handleEnterAction();
+  });
 
-  // Event Listeners
-  enterBtnEl?.addEventListener('click', handleEnterAction);
-  enterBtnEl?.addEventListener('pointerdown', (e) => { handleEnterAction(); });
-  saveBtnEl?.addEventListener('click', saveTuneToFirebase);
+  saveBtnEl?.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    saveTuneToFirebase();
+  });
 
   // Layout calculations
   radius = min(width, height) * (width < 520 ? 0.28 : 0.35);
   scaleFactor = width < 520 ? 0.18 : 0.22;
 
-  // Initialize Oscillators & Chairs
+  // Initialize Oscillators
   for (let i = 0; i < notes.length; i++) {
     let osc = new p5.Oscillator('triangle');
     osc.freq(notes[i]);
@@ -115,10 +80,6 @@ function setup() {
   }
   
   fetchTunes();
-
-  window.addEventListener('orientationchange', () => {
-    setTimeout(windowResized, 350);
-  });
 }
 
 // --- 5. DRAW LOOP ---
@@ -127,7 +88,6 @@ function draw() {
   if (bg) image(bg, width/2, height/2, width, height);
   translate(width/2, height/2);
 
-  // Draw Chairs
   for (let c of chairs) {
     if (autoRotate) c.angle += rotationSpeed;
     let x = cos(c.angle) * radius;
@@ -137,7 +97,6 @@ function draw() {
     c.pulse *= 0.88; 
   }
 
-  // Playback Logic
   if (isPlayback && recording.length > 0) {
     let t = millis() - playbackStartTime;
     for (let r of recording) {
@@ -148,19 +107,24 @@ function draw() {
         oscs[r.note].amp(0, 0.1);
       }
     }
-    
     let lastNote = recording[recording.length - 1];
-    if (t > lastNote.end + 300) {
-      stopPlayback();
-    }
+    if (t > lastNote.end + 300) stopPlayback();
   }
 }
 
 // --- 6. INTERACTION ---
 
-// GLOBAL FUNCTION (Correct location)
 function handleEnterAction() {
+  // Mobile Debounce: prevent triggering twice within 300ms
+  if (millis() - lastActionTime < 300) return;
+  lastActionTime = millis();
+
+  // Force Resume Audio for strict mobile browsers
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+  }
   userStartAudio();
+
   if (isPlayback) {
     stopPlayback();
   } else if (!recordingMode) {
@@ -170,32 +134,16 @@ function handleEnterAction() {
   }
 }
 
+// Handle chair clicks (Desktop & Mobile)
 function mousePressed() {
+  if (getAudioContext().state !== 'running') getAudioContext().resume();
   userStartAudio();
+
   if (autoRotate || isPlayback) return;
   
   let mx = mouseX - width / 2;
   let my = mouseY - height / 2;
   
-  for (let c of chairs) {
-    let x = cos(c.angle) * radius;
-    let y = sin(c.angle) * radius;
-    if (dist(mx, my, x, y) < 60) {
-      triggerNote(c.note, 180);
-      if (recordingMode) recordNote(c.note, 180);
-      break;
-    }
-  }
-}
-
-function handleCanvasTap(px, py) {
-  const canvasEl = document.querySelector('.game-canvas canvas');
-  if (!canvasEl) return;
-  const rect = canvasEl.getBoundingClientRect();
-  const mx = px - (rect.width / 2);
-  const my = py - (rect.height / 2);
-
-  if (autoRotate || isPlayback) return;
   for (let c of chairs) {
     let x = cos(c.angle) * radius;
     let y = sin(c.angle) * radius;
@@ -219,7 +167,8 @@ function keyPressed() {
   }
 }
 
-// --- 7. SOUND & RECORDING FUNCTIONS ---
+// --- 7. CORE LOGIC ---
+
 function triggerNote(i, d) {
   if (oscs[i]) {
     oscs[i].amp(0.18, 0.03);
@@ -245,7 +194,6 @@ function startRecording() {
   autoRotate = false;
   if (enterBtnEl) enterBtnEl.textContent = 'STOP & PLAY';
   if (saveBtnEl) saveBtnEl.disabled = true;
-  const ind = document.getElementById('rec-indicator'); if (ind) ind.style.display = 'block';
 }
 
 function startPlayback() {
@@ -259,7 +207,6 @@ function startPlayback() {
   playbackStartTime = millis();
   if (enterBtnEl) enterBtnEl.textContent = 'STOP ALL';
   if (saveBtnEl) saveBtnEl.disabled = false;
-  const ind = document.getElementById('rec-indicator'); if (ind) ind.style.display = 'none';
 }
 
 function stopPlayback() {
@@ -268,25 +215,20 @@ function stopPlayback() {
   autoRotate = false;
   for (let o of oscs) o.amp(0, 0.2);
   if (enterBtnEl) enterBtnEl.textContent = 'ENTER';
-  const ind = document.getElementById('rec-indicator'); if (ind) ind.style.display = 'none';
 }
 
-// --- 8. FIREBASE FUNCTIONS (FIXED) ---
+// --- 8. FIREBASE ---
+
 function saveTuneToFirebase() {
   if (!database || !window.navigator.onLine) {
-    alert("Connection issue. Please try again."); 
+    alert("Connection issue."); 
     return;
   }
-  
-  // Basic validation to prevent saving empty tunes
   if (!recording || recording.length === 0) {
-    alert("Record something first!");
+    alert("Nothing to save!");
     return;
   }
-
   const name = nameInputEl.value.trim() || "Anonymous";
-  
-  // This logic was missing in your previous paste:
   database.ref('tunes').push({
     player: name,
     notes: recording,
@@ -295,28 +237,23 @@ function saveTuneToFirebase() {
     alert("Tune Saved!");
     if (saveBtnEl) saveBtnEl.disabled = true;
     nameInputEl.value = "";
-  }).catch(err => {
-    console.error(err);
-    alert("Error saving: " + err.message);
   });
 }
 
 function fetchTunes() {
   if (!database) return;
-  // This logic was missing in your previous paste:
   database.ref('tunes').limitToLast(10).on('value', (s) => {
     let data = s.val();
     let html = '';
     if (data) {
       Object.entries(data).reverse().forEach(([key, v]) => {
-        // Safe stringify for the onclick event
         let notesString = JSON.stringify(v.notes).replace(/"/g, '&quot;');
         html += `<li onclick="window.playRemote('${notesString}')" style="cursor:pointer;">
                   ${v.player} <span>▶</span>
                 </li>`;
       });
     } else {
-      html = '<li>No tunes recorded yet.</li>';
+      html = '<li>No tunes yet.</li>';
     }
     const mobileList = document.getElementById('tunes-list-mobile');
     const desktopList = document.getElementById('tunes-list-desktop');
@@ -326,12 +263,13 @@ function fetchTunes() {
 }
 
 window.playRemote = (notesStr) => {
+  if (getAudioContext().state !== 'running') getAudioContext().resume();
   userStartAudio();
   try {
     recording = JSON.parse(notesStr);
     startPlayback();
   } catch (e) {
-    console.error("Error playing remote tune", e);
+    console.error(e);
   }
 };
 
